@@ -16,13 +16,11 @@
 
 #pragma once
 
-
-
 #ifdef RGB_MATRIX_ENABLE
 /* RGB Matrix driver configuration */
 #    define DRIVER_COUNT 2
 #    define DRIVER_1_LED_COUNT 51
-#    define DRIVER_2_LED_COUNT 47
+#    define DRIVER_2_LED_COUNT 46
 #    define RGB_MATRIX_LED_COUNT (DRIVER_1_LED_COUNT + DRIVER_2_LED_COUNT)
 
 #    define SPI_SCK_PIN A5
@@ -59,7 +57,7 @@
 #    define NUM_LOCK_INDEX 30
 #    define CAPS_LOCK_INDEX 51
 #    define LOW_BAT_IND_INDEX \
-        { 89 }
+        { 88 }
 
 #    define RGB_MATRIX_KEYPRESSES
 #    define RGB_MATRIX_FRAMEBUFFER_EFFECTS

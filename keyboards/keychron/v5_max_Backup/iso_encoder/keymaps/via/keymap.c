@@ -1,60 +1,21 @@
+/* Copyright 2024 @ Keychron (https://www.keychron.com)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include QMK_KEYBOARD_H
 #include "keychron_common.h"
-#include "rgb_cicle_comu.h"
-#include "rgb_cicle_semaforo.h"
-#include "rgb_cicle_perro_guardian.h"
-#include "rgb_cicle_cerberos.h"
-
-// -------------------- CICLO DE RGBS ------------------------------- 
-#define INACTIVITAT_INTERVAL 3000   // Definim el interval en ms del que trigará en tornar al CICLE
-
-// globals
-uint32_t last_timer = 0;
-uint32_t ultima_tecla_timer = 0;
-bool inactiu_mode = false;
-
-bool fn_pulsada = false;
-bool rctl_pulsada = false;
-
-
-
-// -------------------------------------------------   SCAN USER ---------------------------------------------
-void matrix_scan_user(void){ 
-
-    // DESACTIVAR les altres
-    //if (rgb_matrix_get_mode() != RGB_MATRIX_SOLID_COLOR){
-    //  rgb_matrix_mode_noeeprom(RGB_MATRIX_SOLID_COLOR);
-    //}
-
-    // Comprovem si ha passat el temps de inactivitat per a passar a modo inactiu
-    if (timer_elapsed32(ultima_tecla_timer) > INACTIVITAT_INTERVAL){
-        inactiu_mode = true;
-    }
-
-    // Executem el rgb ELEGIT
-    switch (cicle_ELEGIT)
-    {
-    case 1:
-        RGB_CICLE_SEMAFORO(inactiu_mode);
-        break;
-
-    case 2:
-        RGB_CICLE_PERRO_GUARDIAN(inactiu_mode);
-        break;
-
-    case 3:
-        RGB_CICLE_CERBEROS(inactiu_mode, 0, 2, 3);
-        break;
-
-
-    default:
-        break;
-    }
-
-    
-} // -------------------------------------------------   SCAN USER ---------------------------------------------
-
-
 
 enum layers {
     MAC_BASE,
@@ -89,7 +50,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_LCTL,  KC_LWIN,  KC_LALT,                                KC_SPC,                                 KC_RALT,  MO(WIN_FN), KC_RCTL,  KC_LEFT,  KC_DOWN,  KC_RGHT,  KC_P0,    KC_PDOT            ),
 
     [WIN_FN] = LAYOUT_iso_99(
-        QK_BOOT,            KC_BRID,  KC_BRIU,  KC_TASK,  KC_FILE,  RGB_VAD,  RGB_VAI,  KC_MPRV,  KC_MPLY,  KC_MNXT,  KC_MUTE,    KC_VOLD,  KC_VOLU,            KC_INS,  KC_PGUP,  KC_PGDN,    RGB_TOG,
+        _______,            KC_BRID,  KC_BRIU,  KC_TASK,  KC_FILE,  RGB_VAD,  RGB_VAI,  KC_MPRV,  KC_MPLY,  KC_MNXT,  KC_MUTE,    KC_VOLD,  KC_VOLU,            _______,  _______,  _______,    RGB_TOG,
         _______,  BT_HST1,  BT_HST2,  BT_HST3,  P2P4G,    _______,  _______,  _______,  _______,  _______,  _______,  _______,    _______,  _______,            _______,  _______,  _______,    _______,
         RGB_TOG,  RGB_MOD,  RGB_VAI,  RGB_HUI,  RGB_SAI,  RGB_SPI,  _______,  _______,  _______,  _______,  _______,  _______,    _______,                      _______,  _______,  _______,    _______,
         _______,  RGB_RMOD, RGB_VAD,  RGB_HUD,  RGB_SAD,  RGB_SPD,  _______,  _______,  _______,  _______,  _______,  _______,    _______,  _______,            _______,  _______,  _______,
@@ -106,71 +67,10 @@ const uint16_t PROGMEM encoder_map[][NUM_ENCODERS][2] = {
 };
 #endif // ENCODER_MAP_ENABLE
 
-
-
-// ---------------------------- HOOK PULSACIONS TECLES ---------------------------------
+// clang-format on
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    // Comprovem si s'ha pulsat alguna tecla, si es així, eixim del modo inactiu / reiniciem contador
-    
-    switch (keycode)
-    {
-    case MO(WIN_FN):
-        if (record->event.pressed) {
-            fn_pulsada = true;
-        }else{
-            fn_pulsada = false;
-        }
-        break;
-
-    case KC_RCTL:
-        if (record->event.pressed) {
-            rctl_pulsada = true;
-        }else{
-            rctl_pulsada = false;
-        }
-        break;
-
-    case KC_P1:
-        if (record->event.pressed) {
-            if (fn_pulsada && rctl_pulsada){
-                cicle_ELEGIT = 1;
-                cicle_INTERVAL = 2000;
-            }
-        }
-        break;
-
-    case KC_P2:
-        if (record->event.pressed) {
-            if (fn_pulsada && rctl_pulsada){
-                cicle_ELEGIT = 2;
-                cicle_INTERVAL = 30;
-            }
-        }
-        break;
-
-    case KC_P3:
-        if (record->event.pressed) {
-            if (fn_pulsada && rctl_pulsada){
-                cicle_ELEGIT = 3;
-                cicle_INTERVAL = 30;
-            }
-        }
-        break;
-
-    
-    default:
-        ultima_tecla_timer = timer_read32();
-        inactiu_mode = false; // Si no coincideix ninguna de les combinacions següents, parem el modo inactiu
-        break;
-
-    } // SWITCH
-        
-    
-
-    // clang-format on (NI PAJOLERA LO QUE ES AÇÓ)
     if (!process_record_keychron_common(keycode, record)) {
         return false;
     }
     return true;
 }
-
