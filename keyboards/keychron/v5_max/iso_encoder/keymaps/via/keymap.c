@@ -4,6 +4,8 @@
 #include "rgb_cicle_semaforo.h"
 #include "rgb_cicle_perro_guardian.h"
 #include "rgb_cicle_cerberos.h"
+#include "rgb_estatic_gradient.h"
+
 
 // -------------------- CICLO DE RGBS ------------------------------- 
 #define INACTIVITAT_INTERVAL 3000   // Definim el interval en ms del que trigará en tornar al CICLE
@@ -44,6 +46,10 @@ void matrix_scan_user(void){
 
     case 3:
         RGB_CICLE_CERBEROS(inactiu_mode, 0, 2, 3);
+        break;
+
+    case 4:
+        RGB_ESTATIC_GRADIENT(inactiu_mode, 1);
         break;
 
 
@@ -112,6 +118,9 @@ const uint16_t PROGMEM encoder_map[][NUM_ENCODERS][2] = {
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     // Comprovem si s'ha pulsat alguna tecla, si es així, eixim del modo inactiu / reiniciem contador
     
+    // Valor trivial. Si no es demostra el contrari, no anem a fer camvi de cicle, per lo tant eixim de mode inactiu
+    bool es_un_camvi_de_cicle = false;
+
     switch (keycode)
     {
     case MO(WIN_FN):
@@ -120,6 +129,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         }else{
             fn_pulsada = false;
         }
+        es_un_camvi_de_cicle = true; // Ací, sí o sí, no podem eixir de inactiu, perque si no sempre eixirá cuan acabem de pulsar la secuencia
         break;
 
     case KC_RCTL:
@@ -128,6 +138,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         }else{
             rctl_pulsada = false;
         }
+        es_un_camvi_de_cicle = fn_pulsada;
         break;
 
     case KC_P1:
@@ -137,33 +148,50 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 cicle_INTERVAL = 2000;
             }
         }
+        es_un_camvi_de_cicle = fn_pulsada;
         break;
 
     case KC_P2:
         if (record->event.pressed) {
             if (fn_pulsada && rctl_pulsada){
                 cicle_ELEGIT = 2;
-                cicle_INTERVAL = 30;
+                cicle_INTERVAL = 50;
             }
         }
+        es_un_camvi_de_cicle = fn_pulsada;
         break;
 
     case KC_P3:
         if (record->event.pressed) {
             if (fn_pulsada && rctl_pulsada){
                 cicle_ELEGIT = 3;
-                cicle_INTERVAL = 30;
+                cicle_INTERVAL = 80;
             }
         }
+        es_un_camvi_de_cicle = fn_pulsada;
         break;
 
-    
+    case KC_P4:
+        if (record->event.pressed) {
+            if (fn_pulsada && rctl_pulsada){
+                cicle_ELEGIT = 4;
+                cicle_INTERVAL = 100;
+            }
+        }
+        es_un_camvi_de_cicle = fn_pulsada;
+        break;
+
     default:
-        ultima_tecla_timer = timer_read32();
-        inactiu_mode = false; // Si no coincideix ninguna de les combinacions següents, parem el modo inactiu
         break;
 
     } // SWITCH
+
+    //Comprovem si es un camvi de cicle, i si no, eixim de mode inactiu
+    if (!es_un_camvi_de_cicle){
+        ultima_tecla_timer = timer_read32();
+        inactiu_mode = false; // Si no coincideix ninguna de les combinacions següents, parem el modo inactiu
+
+    }
         
     
 

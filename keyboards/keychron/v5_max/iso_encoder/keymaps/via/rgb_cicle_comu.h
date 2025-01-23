@@ -2,7 +2,7 @@
 #define RGB_CICLE_COMU_H
 
 //Globals comú a tots els efectos
-uint16_t cicle_INTERVAL = 30;
+uint16_t cicle_INTERVAL = 60;
 uint32_t lapse_INTERVAL = 0;
 uint8_t cicle_ELEGIT = 2;
 

@@ -13,6 +13,12 @@ uint8_t posicio_1 = 0;
 uint8_t posicio_2 = TOTAL_CIRCUIT_CIRCULAR / 3;
 uint8_t posicio_3 = TOTAL_CIRCUIT_CIRCULAR / 3 * 2;
 
+// Fixem el patró de percentatges
+#define TOTAL_PERCENTS 8
+float percents_brillo [TOTAL_PERCENTS] = {0.02, 0.04, 0.08, 0.1, 0.4, 1.0, 0.08, 0.02 };
+
+
+
 
 // -- Mi propio ciclo de colores --
 void RGB_CICLE_CERBEROS(bool inactiu, uint8_t color_1, uint8_t color_2, uint8_t color_3){
@@ -46,77 +52,34 @@ void RGB_CICLE_CERBEROS(bool inactiu, uint8_t color_1, uint8_t color_2, uint8_t 
         // apaguem totes les tecles
         rgb_matrix_set_color_all(0,0,0); 
 
+        // dibuixem una estela de degradat de color (10 pasos)
+        for (uint8_t bucle = 0; bucle < TOTAL_PERCENTS; bucle ++){
+        //percent_brillo = bucle / 9.0; // Si no no forsa la operació a FLOAT
         // Perro 1
         rgb_matrix_set_color(
-            circuit_circular[posicio_1],
-            rgb_colors[color_1][0] * 0.1,
-            rgb_colors[color_1][1] * 0.1,
-            rgb_colors[color_1][2] * 0.1
+            circuit_circular[(posicio_1 + bucle) % TOTAL_CIRCUIT_CIRCULAR],
+            rgb_colors[color_1][0] * percents_brillo[bucle],
+            rgb_colors[color_1][1] * percents_brillo[bucle],
+            rgb_colors[color_1][2] * percents_brillo[bucle]
         );
-
-        rgb_matrix_set_color(
-            circuit_circular[(posicio_1 + 1) % TOTAL_CIRCUIT_CIRCULAR],
-            rgb_colors[color_1][0] * 0.4,
-            rgb_colors[color_1][1] * 0.4,
-            rgb_colors[color_1][2] * 0.4
-        );
-
-        rgb_matrix_set_color(
-            circuit_circular[(posicio_1 + 2) % TOTAL_CIRCUIT_CIRCULAR],
-            rgb_colors[color_1][0] * 1,
-            rgb_colors[color_1][1] * 1,
-            rgb_colors[color_1][2] * 1
-        );
-
 
         // Perro 2
         rgb_matrix_set_color(
-            circuit_circular[posicio_2],
-            rgb_colors[color_2][0] * 0.1,
-            rgb_colors[color_2][1] * 0.1,
-            rgb_colors[color_2][2] * 0.1
-
-        );
-
-        rgb_matrix_set_color(
-            circuit_circular[(posicio_2 + 1) % TOTAL_CIRCUIT_CIRCULAR],
-            rgb_colors[color_2][0] * 0.4,
-            rgb_colors[color_2][1] * 0.4,
-            rgb_colors[color_2][2] * 0.4
-
-        );
-
-        rgb_matrix_set_color(
-            circuit_circular[(posicio_2 + 2) % TOTAL_CIRCUIT_CIRCULAR],
-            rgb_colors[color_2][0] * 1,
-            rgb_colors[color_2][1] * 1,
-            rgb_colors[color_2][2] * 1
+            circuit_circular[(posicio_2 + bucle) % TOTAL_CIRCUIT_CIRCULAR],
+            rgb_colors[color_2][0] * percents_brillo[bucle],
+            rgb_colors[color_2][1] * percents_brillo[bucle],
+            rgb_colors[color_2][2] * percents_brillo[bucle]
 
         );
 
         // Perro 3
         rgb_matrix_set_color(
-            circuit_circular[posicio_3],
-            rgb_colors[color_3][0] * 0.1,
-            rgb_colors[color_3][1] * 0.1,
-            rgb_colors[color_3][2] * 0.1
+            circuit_circular[(posicio_3 + bucle) % TOTAL_CIRCUIT_CIRCULAR],
+            rgb_colors[color_3][0] * percents_brillo[bucle],
+            rgb_colors[color_3][1] * percents_brillo[bucle],
+            rgb_colors[color_3][2] * percents_brillo[bucle]
         );
-
-        rgb_matrix_set_color(
-            circuit_circular[(posicio_3 + 1) % TOTAL_CIRCUIT_CIRCULAR],
-            rgb_colors[color_3][0] * 0.4,
-            rgb_colors[color_3][1] * 0.4,
-            rgb_colors[color_3][2] * 0.4
-        );
-
-        rgb_matrix_set_color(
-            circuit_circular[(posicio_3 + 2) % TOTAL_CIRCUIT_CIRCULAR],
-            rgb_colors[color_3][0] * 1,
-            rgb_colors[color_3][1] * 1,
-            rgb_colors[color_3][2] * 1
-        );
-
-
+        } // FOR
         /*
         // Alumbrem la tecla que "camina"
         rgb_matrix_set_color(
@@ -143,8 +106,8 @@ void RGB_CICLE_CERBEROS(bool inactiu, uint8_t color_1, uint8_t color_2, uint8_t 
         );
         */
 
-    }
+    } // IF
     
-}
+} // PROCEDURE
 
 #endif // RGB_CICLE_CERBEROS
