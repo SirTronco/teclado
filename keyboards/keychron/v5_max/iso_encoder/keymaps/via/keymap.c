@@ -9,14 +9,17 @@
 
 // -------------------- CICLO DE RGBS ------------------------------- 
 #define INACTIVITAT_INTERVAL 3000   // Definim el interval en ms del que trigará en tornar al CICLE
+#define DOBLE_PULSACIO 200          // Definim el interval en ms per a la doble pulsació del PPLS
 
 // globals
 uint32_t last_timer = 0;
 uint32_t ultima_tecla_timer = 0;
+uint32_t ultima_ppls_timer = 0;
 bool inactiu_mode = false;
 
 bool fn_pulsada = false;
 bool rctl_pulsada = false;
+bool ppls_pulsada = false;
 
 
 
@@ -32,6 +35,19 @@ void matrix_scan_user(void){
     if (timer_elapsed32(ultima_tecla_timer) > INACTIVITAT_INTERVAL){
         inactiu_mode = true;
     }
+
+    // Comprovem si la pulsació PPLS ha caducat
+    if (timer_elapsed32(ultima_ppls_timer) > DOBLE_PULSACIO){
+        if (ppls_pulsada) {
+            tap_code16(LSFT(KC_PPLS)); // finalment mostrem el plus
+        }
+        
+        ppls_pulsada = false; // ha passat el temps, perdem la pulsació
+    }
+
+
+
+
 
     // Executem el rgb ELEGIT
     switch (cicle_ELEGIT)
@@ -180,6 +196,24 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         }
         es_un_camvi_de_cicle = fn_pulsada;
         break;
+
+    // Doble pulsació del + fará un :
+    case KC_PPLS:
+        if (record->event.pressed){
+            // Primer comprovem si estem pulsats
+            if (ppls_pulsada){ // Se considera que está dins del tiempo, ya que sigue pulsada
+                tap_code16(LSFT(KC_DOT));
+                ppls_pulsada = false; // hem pulsat la tecla, ja no la tenim pulsada
+
+            }else{ //No estem pulsats, per lo tant pasem a pulsats
+                ppls_pulsada = true;
+                ultima_ppls_timer = timer_read32();
+            }
+            
+            return false; // bloquejem la tecla actual en cualquier cas, ja que si tenim que imprimirla, será en el timeout
+        }
+        break;
+
 
     default:
         break;
