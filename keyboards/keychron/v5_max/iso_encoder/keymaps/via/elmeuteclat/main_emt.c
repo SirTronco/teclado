@@ -8,6 +8,7 @@
 #include "h/rgb_estatic_gradient.h"
 
 
+
 // -------------------- CICLO DE RGBS ------------------------------- 
 #define INACTIVITAT_INTERVAL 3000   // Definim el interval en ms del que trigará en tornar al CICLE
 #define DOBLE_PULSACIO 200          // Definim el interval en ms per a la doble pulsació del PPLS
@@ -30,6 +31,9 @@ bool inactiu_mode = false;
 
 bool fn_pulsada = false;
 bool rctl_pulsada = false;
+bool lctl_pulsada = false;
+bool lalt_pulsada = false;
+bool lsft_pulsada = false;
 bool ppls_pulsada = false;
 
 
@@ -50,7 +54,7 @@ void matrix_scan_user(void){
     // Comprovem si la pulsació PPLS ha caducat
     if (timer_elapsed32(ultima_ppls_timer) > DOBLE_PULSACIO){
         if (ppls_pulsada) {
-            tap_code16(LSFT(KC_PPLS)); // finalment mostrem el plus
+           tap_code16(LSFT(KC_PPLS)); // finalment mostrem el plus
         }
         
         ppls_pulsada = false; // ha passat el temps, perdem la pulsació
@@ -87,6 +91,51 @@ void matrix_scan_user(void){
     
 } // -------------------------------------------------   SCAN USER ---------------------------------------------
 
+// Tots les intervencions del teclat han de anar abans de la última process_record_keychron_common, ja que esta funció anul·la
+// cualsevol altra pulsació. No sé perqué ho fan, pero de moment es el que hi ha
+
+// ---------------------------- HOOK ENCODER ---------------------------------
+
+bool encoder_update_user(uint8_t index, bool clockwise) {
+ 
+    if (lsft_pulsada) {  // Si SHIFT está presionado
+        tap_code(clockwise ? KC_WH_R : KC_WH_L);  // Scroll horizontal
+
+        return false; // bloquejem el valor per defecte
+    }
+    
+    if (lctl_pulsada) {  // Si CTRL está presionado
+        if (clockwise) {
+            tap_code(KC_WH_U);  // SCROLL UP
+        } else {
+            tap_code(KC_WH_D);  // SCROLL AVALL
+        }
+        return false; // bloquejem el valor per defecte
+    }
+ 
+    
+    // Si estem en la capa WIN_FN, cambib
+    if (layer_state_is(EMT_WIN_FN)) {  // Si FN está presionado
+        if (clockwise) {
+            rgb_matrix_increase_val(); // Aumenta el brillo
+    
+        } else {
+            rgb_matrix_decrease_val(); // Disminuye el brillo
+    
+        }
+        return false; // Evita que haga otra acción // bloquejem el valor per defecte
+    }
+
+    /*
+    // Si ninguna de les anterios es cumpleix, manejará el volumen
+    if (clockwise) {
+        tap_code(KC_VOLU);  // Subir volumen
+    } else {
+        tap_code(KC_VOLD);  // Bajar volumen
+    }*/
+    return true;  // Si no es cumpleix ninguna de dalt, torne el valor per defecte (o volumen o RGB)
+}
+
 
 // ---------------------------- HOOK PULSACIONS TECLES ---------------------------------
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
@@ -97,6 +146,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     switch (keycode)
     {
+    /*
+    case KC_MUTE:
+        cicle_ELEGIT = 3;
+        cicle_INTERVAL = 80;
+    break;
+*/
+    // --------------- TECLES ESPECIALS -----------------
     case MO(EMT_WIN_FN):
         if (record->event.pressed) {
             fn_pulsada = true;
@@ -105,6 +161,25 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         }
         es_un_camvi_de_cicle = true; // Ací, sí o sí, no podem eixir de inactiu, perque si no sempre eixirá cuan acabem de pulsar la secuencia
         break;
+
+    case KC_LALT:
+        if (record->event.pressed) {
+            lalt_pulsada = true;        }else{
+            lalt_pulsada = false;
+        }
+        es_un_camvi_de_cicle = fn_pulsada;
+        break;
+
+    
+    case KC_LSFT:
+        if (record->event.pressed) {
+            lsft_pulsada = true;
+        }else{
+            lsft_pulsada = false;
+        }
+        es_un_camvi_de_cicle = fn_pulsada;
+        break;
+
 
     case KC_RCTL:
         if (record->event.pressed) {
@@ -115,6 +190,42 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         es_un_camvi_de_cicle = fn_pulsada;
         break;
 
+    case KC_LCTL:
+        if (record->event.pressed) {
+            lctl_pulsada = true;
+        }else{
+            lctl_pulsada = false;
+        }
+        es_un_camvi_de_cicle = fn_pulsada;
+        break;
+
+
+    // Tecles extra --------------------------------------
+    case KC_DEL:    // convertir en INS
+        if (record->event.pressed){
+            if (lalt_pulsada){
+                tap_code16(KC_INS);
+            }
+        }
+        break;
+
+    case KC_HOME:   // convertir en RE-PAG
+        if (record->event.pressed){
+            if (lalt_pulsada){
+                tap_code(KC_PGUP);
+            }
+        }
+        break;
+
+    case KC_END:    // convertir en AV-PAG
+        if (record->event.pressed){
+            if (lalt_pulsada){
+                tap_code(KC_PGDN);
+            }
+        }
+        break;
+
+    // ----------- PROGRAMES DE LLUM PERSONALITZATS
     case KC_P1:
         if (record->event.pressed) {
             if (fn_pulsada && rctl_pulsada){
@@ -126,8 +237,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         break;
 
     case KC_P2:
-        if (record->event.pressed) {
-            if (fn_pulsada && rctl_pulsada){
+        if (record->event.pressed) {            if (fn_pulsada && rctl_pulsada){
                 cicle_ELEGIT = 2;
                 cicle_INTERVAL = 50;
             }
@@ -167,7 +277,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 ppls_pulsada = true;
                 ultima_ppls_timer = timer_read32();
             }
-            
             return false; // bloquejem la tecla actual en cualquier cas, ja que si tenim que imprimirla, será en el timeout
         }
         break;
@@ -193,4 +302,5 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
     return true;
 }
+
 
